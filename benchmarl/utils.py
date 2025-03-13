@@ -109,3 +109,16 @@ def _add_rnn_transforms(
         return out_env
 
     return model_fun
+
+def load_default_movingout_config():
+    from pathlib import Path
+    
+    current_file_path = Path(__file__).resolve()
+    path = Path("conf") / "task" / "pettingzoo" / "movingout.yaml"
+    
+    path = current_file_path.parent / path
+    
+    with open(path) as config:
+        yaml_string = config.read()
+    config_dict = yaml.safe_load(yaml_string)
+    return config_dict
