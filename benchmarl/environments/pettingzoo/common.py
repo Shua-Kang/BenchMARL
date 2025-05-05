@@ -10,7 +10,7 @@ from typing import Callable, Dict, List, Optional
 from torchrl.data import Composite
 from torchrl.envs import EnvBase, PettingZooEnv
 
-from benchmarl.environments.common import Task
+from benchmarl.environments.common import Task, TaskClass
 
 from benchmarl.utils import DEVICE_TYPING
 
@@ -51,49 +51,62 @@ class PettingZooTask(Task):
         )
 
     def supports_continuous_actions(self) -> bool:
-        if self in {
-            PettingZooTask.MOVINGOUT,
-            PettingZooTask.MULTIWALKER,
-            PettingZooTask.WATERWORLD,
-            PettingZooTask.SIMPLE_TAG,
-            PettingZooTask.SIMPLE_ADVERSARY,
-            PettingZooTask.SIMPLE_CRYPTO,
-            PettingZooTask.SIMPLE_PUSH,
-            PettingZooTask.SIMPLE_REFERENCE,
-            PettingZooTask.SIMPLE_SPEAKER_LISTENER,
-            PettingZooTask.SIMPLE_SPREAD,
-            PettingZooTask.SIMPLE_TAG,
-            PettingZooTask.SIMPLE_WORLD_COMM,
+        # if self in {
+        #     PettingZooTask.MOVINGOUT,
+        #     PettingZooTask.MULTIWALKER,
+        #     PettingZooTask.WATERWORLD,
+        #     PettingZooTask.SIMPLE_TAG,
+        #     PettingZooTask.SIMPLE_ADVERSARY,
+        #     PettingZooTask.SIMPLE_CRYPTO,
+        #     PettingZooTask.SIMPLE_PUSH,
+        #     PettingZooTask.SIMPLE_REFERENCE,
+        #     PettingZooTask.SIMPLE_SPEAKER_LISTENER,
+        #     PettingZooTask.SIMPLE_SPREAD,
+        #     PettingZooTask.SIMPLE_TAG,
+        #     PettingZooTask.SIMPLE_WORLD_COMM,
+        if self.name in {
+            "MOVINGOUT",
+            "MULTIWALKER",
+            "WATERWORLD",
+            "SIMPLE_TAG",
+            "SIMPLE_ADVERSARY",
+            "SIMPLE_CRYPTO",
+            "SIMPLE_PUSH",
+            "SIMPLE_REFERENCE",
+            "SIMPLE_SPEAKER_LISTENER",
+            "SIMPLE_SPREAD",
+            "SIMPLE_TAG",
+            "SIMPLE_WORLD_COMM",
         }:
             return True
         return False
 
     def supports_discrete_actions(self) -> bool:
-        if self in {
-            PettingZooTask.SIMPLE_TAG,
-            PettingZooTask.SIMPLE_ADVERSARY,
-            PettingZooTask.SIMPLE_CRYPTO,
-            PettingZooTask.SIMPLE_PUSH,
-            PettingZooTask.SIMPLE_REFERENCE,
-            PettingZooTask.SIMPLE_SPEAKER_LISTENER,
-            PettingZooTask.SIMPLE_SPREAD,
-            PettingZooTask.SIMPLE_TAG,
-            PettingZooTask.SIMPLE_WORLD_COMM,
+        if self.name in {
+            "SIMPLE_TAG",
+            "SIMPLE_ADVERSARY",
+            "SIMPLE_CRYPTO",
+            "SIMPLE_PUSH",
+            "SIMPLE_REFERENCE",
+            "SIMPLE_SPEAKER_LISTENER",
+            "SIMPLE_SPREAD",
+            "SIMPLE_TAG",
+            "SIMPLE_WORLD_COMM",
         }:
             return True
         return False
 
     def has_state(self) -> bool:
-        if self in {
-            PettingZooTask.SIMPLE_TAG,
-            PettingZooTask.SIMPLE_ADVERSARY,
-            PettingZooTask.SIMPLE_CRYPTO,
-            PettingZooTask.SIMPLE_PUSH,
-            PettingZooTask.SIMPLE_REFERENCE,
-            PettingZooTask.SIMPLE_SPEAKER_LISTENER,
-            PettingZooTask.SIMPLE_SPREAD,
-            PettingZooTask.SIMPLE_TAG,
-            PettingZooTask.SIMPLE_WORLD_COMM,
+        if self.name in {
+            "SIMPLE_TAG",
+            "SIMPLE_ADVERSARY",
+            "SIMPLE_CRYPTO",
+            "SIMPLE_PUSH",
+            "SIMPLE_REFERENCE",
+            "SIMPLE_SPEAKER_LISTENER",
+            "SIMPLE_SPREAD",
+            "SIMPLE_TAG",
+            "SIMPLE_WORLD_COMM",
         }:
             return True
         return False
@@ -155,3 +168,22 @@ class PettingZooTask(Task):
     @staticmethod
     def env_name() -> str:
         return "pettingzoo"
+
+
+class PettingZooTask(Task):
+    """Enum for PettingZoo tasks."""
+
+    MULTIWALKER = None
+    WATERWORLD = None
+    SIMPLE_ADVERSARY = None
+    SIMPLE_CRYPTO = None
+    SIMPLE_PUSH = None
+    SIMPLE_REFERENCE = None
+    SIMPLE_SPEAKER_LISTENER = None
+    SIMPLE_SPREAD = None
+    SIMPLE_TAG = None
+    SIMPLE_WORLD_COMM = None
+
+    @staticmethod
+    def associated_class():
+        return PettingZooClass

@@ -3,14 +3,18 @@
 #  This source code is licensed under the license found in the
 #  LICENSE file in the root directory of this source tree.
 #
+import importlib
 
 import pytest
-import torch_geometric.nn.conv
 
 from benchmarl.experiment import ExperimentConfig
 from benchmarl.models import CnnConfig, GnnConfig, GruConfig, LstmConfig, MlpConfig
 from benchmarl.models.common import ModelConfig, SequenceModelConfig
 from torch import nn
+
+_has_torch_geometric = importlib.util.find_spec("torch_geometric") is not None
+if _has_torch_geometric:
+    import torch_geometric.nn.conv
 
 
 @pytest.fixture
@@ -39,6 +43,7 @@ def experiment_config(tmp_path) -> ExperimentConfig:
     experiment_config.render = True
     experiment_config.evaluation_episodes = 2
     experiment_config.evaluation_interval = 500
+    experiment_config.evaluation_static = False
     experiment_config.loggers = ["csv"]
     experiment_config.create_json = True
     experiment_config.checkpoint_interval = 100
@@ -94,6 +99,7 @@ def mlp_gnn_sequence_config() -> ModelConfig:
 
 @pytest.fixture
 def cnn_gnn_sequence_config() -> ModelConfig:
+
     return SequenceModelConfig(
         model_configs=[
             CnnConfig(

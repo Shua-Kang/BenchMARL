@@ -18,7 +18,7 @@ from collections import deque, OrderedDict
 from dataclasses import dataclass, MISSING
 from pathlib import Path
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import torch
 from tensordict import TensorDictBase
@@ -34,12 +34,17 @@ from tqdm import tqdm
 from benchmarl.algorithms import IppoConfig, MappoConfig
 
 from benchmarl.algorithms.common import AlgorithmConfig
-from benchmarl.environments import Task
+from benchmarl.environments import Task, TaskClass
 from benchmarl.experiment.callback import Callback, CallbackNotifier
 from benchmarl.experiment.logger import Logger
 from benchmarl.models import GnnConfig, SequenceModelConfig
 from benchmarl.models.common import ModelConfig
-from benchmarl.utils import _add_rnn_transforms, _read_yaml_config, seed_everything
+from benchmarl.utils import (
+    _add_rnn_transforms,
+    _read_yaml_config,
+    local_seed,
+    seed_everything,
+)
 
 _has_hydra = importlib.util.find_spec("hydra") is not None
 if _has_hydra:
@@ -102,6 +107,7 @@ class ExperimentConfig:
     evaluation_interval: int = MISSING
     evaluation_episodes: int = MISSING
     evaluation_deterministic_actions: bool = MISSING
+    evaluation_static: bool = MISSING
 
     loggers: List[str] = MISSING
     project_name: str = MISSING
@@ -312,7 +318,7 @@ class Experiment(CallbackNotifier):
     Main experiment class in BenchMARL.
 
     Args:
-        task (Task): the task configuration
+        task (TaskClass): the task
         algorithm_config (AlgorithmConfig): the algorithm configuration
         model_config (ModelConfig): the policy model configuration
         seed (int): the seed for the experiment
@@ -327,7 +333,7 @@ class Experiment(CallbackNotifier):
 
     def __init__(
         self,
-        task: Task,
+        task: Union[Task, TaskClass],
         algorithm_config: AlgorithmConfig,
         model_config: ModelConfig,
         seed: int,
@@ -341,6 +347,12 @@ class Experiment(CallbackNotifier):
 
         self.config = config
 
+        if isinstance(task, Task):
+            warnings.warn(
+                "Call `.get_task()` or `.get_from_yaml()` on your task Enum before passing it to the experiment. "
+                "If you do not do this, benchmarl will load the default task config from yaml."
+            )
+            task = task.get_task()
         self.task = task
         self.model_config = model_config
         self.critic_model_config = (
@@ -551,6 +563,9 @@ class Experiment(CallbackNotifier):
     def _setup_name(self):
         self.algorithm_name = self.algorithm_config.associated_class().__name__.lower()
         self.model_name = self.model_config.associated_class().__name__.lower()
+        self.critic_model_name = (
+            self.critic_model_config.associated_class().__name__.lower()
+        )
         self.environment_name = self.task.env_name().lower()
         self.task_name = self.task.name.lower()
         self._checkpointed_files = deque([])
@@ -608,9 +623,11 @@ class Experiment(CallbackNotifier):
             seed=self.seed,
         )
         self.logger.log_hparams(
+            critic_model_name=self.critic_model_name,
             experiment_config=self.config.__dict__,
             algorithm_config=self.algorithm_config.__dict__,
             model_config=self.model_config.__dict__,
+            critic_model_config=self.critic_model_config.__dict__,
             task_config=self.task.config,
             continuous_actions=self.continuous_actions,
             on_policy=self.on_policy,
@@ -619,6 +636,7 @@ class Experiment(CallbackNotifier):
     def run(self):
         """Run the experiment until completion."""
         try:
+            seed_everything(self.seed)
             torch.cuda.empty_cache()
             self._collection_loop()
         except KeyboardInterrupt as interrupt:
@@ -632,6 +650,7 @@ class Experiment(CallbackNotifier):
 
     def evaluate(self):
         """Run just the evaluation loop once."""
+        seed_everything(self.seed)
         self._evaluation_loop()
         self.logger.commit()
         print(
@@ -848,8 +867,18 @@ class Experiment(CallbackNotifier):
 
         return float(total_norm)
 
+    @local_seed()
     @torch.no_grad()
     def _evaluation_loop(self):
+        if self.config.evaluation_static:
+            seed_everything(self.seed)
+            try:
+                self.test_env.set_seed(self.seed)
+            except NotImplementedError:
+                warnings.warn(
+                    "`experiment.evaluation_static` set to true but the environment does not allow to set seeds."
+                    "Static evaluation is not guaranteed."
+                )
         evaluation_start = time.time()
         with set_exploration_type(
             ExplorationType.DETERMINISTIC
