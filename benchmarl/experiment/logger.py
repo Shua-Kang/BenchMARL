@@ -186,7 +186,6 @@ class Logger:
             not len(self.loggers) and not self.experiment_config.create_json
         ) or not len(rollouts):
             return
-
         # Cut rollouts at first done
         max_length_rollout_0 = 0
         for i in range(len(rollouts)):

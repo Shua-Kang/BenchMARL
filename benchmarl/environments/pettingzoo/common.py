@@ -15,7 +15,7 @@ from benchmarl.environments.common import Task, TaskClass
 from benchmarl.utils import DEVICE_TYPING
 
 
-class PettingZooTask(Task):
+class PettingZooClass(TaskClass):
     """Enum for PettingZoo tasks."""
 
     MOVINGOUT = None
@@ -172,7 +172,7 @@ class PettingZooTask(Task):
 
 class PettingZooTask(Task):
     """Enum for PettingZoo tasks."""
-
+    MOVINGOUT = None
     MULTIWALKER = None
     WATERWORLD = None
     SIMPLE_ADVERSARY = None

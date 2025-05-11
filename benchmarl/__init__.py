@@ -25,7 +25,7 @@ if _has_hydra:
         from benchmarl.algorithms import algorithm_config_registry
         from benchmarl.environments import _task_class_registry
         from benchmarl.experiment import ExperimentConfig
-
+        
         # Create instance to load hydra schemas
         cs = ConfigStore.instance()
         # Load experiment schema

@@ -597,7 +597,7 @@ class Experiment(CallbackNotifier):
             # If restoring, we use the name of the previous experiment
             self.name = Path(self.config.restore_file).parent.parent.resolve().name
             self.folder_name = save_folder / self.name
-
+        os.makedirs(self.folder_name, exist_ok = True)
         self.folder_name.mkdir(parents=False, exist_ok=True)
         with open(self.folder_name / "config.pkl", "wb") as f:
             pickle.dump(self.task, f)
@@ -753,7 +753,6 @@ class Experiment(CallbackNotifier):
 
             # Training timer
             training_time = time.time() - training_start
-
             # Evaluation
             if (
                 self.config.evaluation
